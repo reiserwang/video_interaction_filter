@@ -44,26 +44,20 @@ class InteractionFilter:
         if len(valid_points) < 2: return 0
         return max(valid_points) - min(valid_points)
 
-    def _check_z_plane(self, p1, p2, depth_map=None):
+    def _check_z_plane(self, v1, v2):
+        if v1 == 0 or v2 == 0: return False
+
         if self.method == 'mde':
-            if depth_map is None: return False # Should not happen if logic is correct
-            d1 = self.depth_estimator.get_person_depth(depth_map, p1['bbox'])
-            d2 = self.depth_estimator.get_person_depth(depth_map, p2['bbox'])
-            if d1 == 0 or d2 == 0: return False
-            
             # Metric or relative check?
             # If standard metric depth: abs(d1 - d2) / max(d1, d2)
             # DepthAnything outputs relative depth (inverse depth usually) for VITS unless calibrated.
             # Assuming relative depth: similar values = similar plane.
-            diff_ratio = abs(d1 - d2) / max(abs(d1), abs(d2) + 1e-6)
+            diff_ratio = abs(v1 - v2) / max(abs(v1), abs(v2) + 1e-6)
             return diff_ratio < config.Z_PLANE_DEPTH_DIFF_THRESHOLD
         
         else:
             # Heuristic
-            s1 = self._get_head_size(p1, self.method)
-            s2 = self._get_head_size(p2, self.method)
-            if s1 == 0 or s2 == 0: return False
-            ratio = max(s1/s2, s2/s1)
+            ratio = max(v1/v2, v2/v1)
             return ratio < config.Z_PLANE_RATIO_THRESHOLD
 
     def process(self, frame):
@@ -79,6 +73,18 @@ class InteractionFilter:
         if self.method == 'mde' and len(ids) > 1:
             depth_map = self.depth_estimator.get_depth_map(frame)
 
+        # Pre-calculate z-metrics (O(N))
+        z_metrics = {}
+        if len(ids) > 1:
+            for pid in ids:
+                if self.method == 'mde':
+                    if depth_map is not None:
+                        z_metrics[pid] = self.depth_estimator.get_person_depth(depth_map, persons[pid]['bbox'])
+                    else:
+                        z_metrics[pid] = 0
+                else:
+                    z_metrics[pid] = self._get_head_size(persons[pid], self.method)
+
         # Graph for grouping
         G = nx.Graph()
         G.add_nodes_from(ids)
@@ -93,7 +99,7 @@ class InteractionFilter:
                     pair = frozenset([id1, id2])
                     overlapping_pairs.add(pair)
                     
-                    if self._check_z_plane(persons[id1], persons[id2], depth_map):
+                    if self._check_z_plane(z_metrics[id1], z_metrics[id2]):
                         interacting_pairs.add(pair)
                         G.add_edge(id1, id2)
 
