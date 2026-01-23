@@ -1,6 +1,8 @@
 import argparse
 import cv2
 import sys
+import time
+from datetime import datetime
 import config
 from core.interaction_filter import InteractionFilter
 from core.comparator import Comparator
@@ -54,6 +56,10 @@ def main():
     
     print(f"Starting processing: {args.video} -> {args.output} using {args.method}")
 
+    start_time_wall = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    start_time = time.time()
+    results = {}
+
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
@@ -72,6 +78,16 @@ def main():
         
         comparator.update(args.method, has_overlap, has_interaction, triggers > 0)
         
+        # Log ended interactions
+        for interaction in results.get('ended_interactions', []):
+            comparator.log_interaction(
+                args.method,
+                interaction['start_frame'],
+                interaction['end_frame'],
+                interaction['triggered'],
+                interaction.get('trigger_frame')
+            )
+
         # Draw
         draw_detections(frame, results['persons'])
         draw_interactions(frame, results['interactions'], results['persons'])
@@ -85,6 +101,21 @@ def main():
     cap.release()
     out.release()
     
+    # Log remaining active interactions as ended
+    for pair, data in results.get('active_interactions', {}).items():
+        comparator.log_interaction(
+            args.method,
+            data['start_frame'],
+            frame_count,
+            data['triggered'],
+            data.get('trigger_frame')
+        )
+
+    end_time = time.time()
+    duration = end_time - start_time
+    end_time_wall = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    comparator.set_processing_stats(start_time_wall, end_time_wall, duration, fps, frame_count)
     comparator.print_report()
     print("Done.")
 
