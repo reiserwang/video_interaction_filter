@@ -108,6 +108,7 @@ class InteractionFilter:
         # Logic update
         current_pairs = interacting_pairs
         to_remove = []
+        ended_interactions = []
         
         for pair, data in list(self.active_interactions.items()):
             if pair in current_pairs:
@@ -117,10 +118,14 @@ class InteractionFilter:
                 if data['count'] >= 60 and not data['triggered']:
                     frame_triggers += 1
                     data['triggered'] = True
+                    data['trigger_frame'] = self.frame_count
             else:
                 to_remove.append(pair)
         
         for r in to_remove:
+            data = self.active_interactions[r]
+            data['end_frame'] = self.frame_count - 1
+            ended_interactions.append(data)
             del self.active_interactions[r]
             
         for pair in current_pairs:
@@ -131,5 +136,7 @@ class InteractionFilter:
             'persons': persons,
             'interactions': interacting_pairs,
             'overlaps': overlapping_pairs,
-            'triggers': frame_triggers
+            'triggers': frame_triggers,
+            'ended_interactions': ended_interactions,
+            'active_interactions': self.active_interactions
         }
