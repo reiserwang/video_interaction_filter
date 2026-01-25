@@ -9,6 +9,7 @@ from core.comparator import Comparator
 from detectors.pose_detector import PoseDetector
 from detectors.depth_estimator import DepthEstimator
 from utils.visualization import draw_detections, draw_interactions, draw_status
+from utils.cli import ProgressBar
 
 def main():
     parser = argparse.ArgumentParser(description="Smart Video Interaction Filter")
@@ -47,6 +48,7 @@ def main():
     fps = cap.get(cv2.CAP_PROP_FPS)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(args.output, fourcc, fps, (width, height))
@@ -59,6 +61,8 @@ def main():
     start_time_wall = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     start_time = time.time()
     results = {}
+
+    progress = ProgressBar(total=total_frames, prefix='Processing')
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -95,9 +99,9 @@ def main():
         
         out.write(frame)
         
-        if frame_count % 50 == 0:
-            print(f"Processed {frame_count} frames...")
+        progress.update(frame_count)
 
+    progress.finish()
     cap.release()
     out.release()
     
