@@ -3,10 +3,11 @@ import torch
 import numpy as np
 import config
 from depth_anything_v2.dpt import DepthAnythingV2
+from utils.cli import print_info
 
 class DepthEstimator:
     def __init__(self):
-        print(f"Loading DepthAnything V2 model: {config.DEPTH_MODEL_NAME} on {config.DEVICE}...")
+        print_info(f"Loading DepthAnything V2 model: {config.DEPTH_MODEL_NAME} on {config.DEVICE}...")
         
         # Model config for VITS (Small) - consistent with config
         model_configs = {

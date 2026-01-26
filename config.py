@@ -9,8 +9,6 @@ elif torch.cuda.is_available():
 else:
     DEVICE = "cpu"
 
-print(f"Using Device: {DEVICE}")
-
 # Video processing
 FRAME_INTERVAL = 1  # Process every Nth frame (1 = all frames)
 

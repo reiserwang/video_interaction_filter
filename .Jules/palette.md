@@ -5,3 +5,7 @@
 ## 2024-10-24 - CLI Progress Pattern
 **Learning:** CLI tools often lack visual feedback for long-running processes, causing user uncertainty.
 **Action:** Use the lightweight `utils.cli.ProgressBar` for any frame-by-frame processing loop to provide immediate feedback on speed and ETA without adding heavy dependencies.
+
+## 2024-10-24 - CLI Status Helpers
+**Learning:** Inconsistent print statements scattered across modules make the CLI feel unpolished and hard to read.
+**Action:** Centralize status printing (info, success, error) in `utils/cli.py` with consistent icons and colors to ensure a unified user experience.

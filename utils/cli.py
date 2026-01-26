@@ -55,3 +55,15 @@ class ProgressBar:
         """Clean up and print a newline."""
         sys.stdout.write('\n')
         sys.stdout.flush()
+
+def print_info(message):
+    print(f"\033[34mℹ\033[0m {message}")
+
+def print_success(message):
+    print(f"\033[32m✔\033[0m {message}")
+
+def print_warning(message):
+    print(f"\033[33m⚠\033[0m {message}")
+
+def print_error(message):
+    print(f"\033[31m✖ {message}\033[0m")
