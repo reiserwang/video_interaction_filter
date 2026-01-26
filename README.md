@@ -1,4 +1,4 @@
-#Build a Smart Video Interaction Filter
+# Build a Smart Video Interaction Filter
 
 **Problem**: VLMs (GPT-4V, Claude) cost $0.01-0.05 per call. Running them on every video frame is too expensive.
 
@@ -76,6 +76,13 @@ uv run main.py --video input.mp4 --method mde
 **Output**
 - Generates an annotated video (default: `output.mp4`).
 - Prints a **Comparator Report** showing VLM triggers and cost reduction stats.
+
+### 4. Testing
+To run the test suite, run the following command:
+
+```bash
+PYTHONPATH=. uv run pytest
+```
 
 ## Configuration
 - Device (MPS/CUDA/CPU) is auto-detected. Override with `--device cpu`.
