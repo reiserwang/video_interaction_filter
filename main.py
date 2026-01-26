@@ -1,6 +1,7 @@
 import argparse
 import cv2
 import sys
+import os
 import time
 from datetime import datetime
 import config
@@ -21,6 +22,10 @@ def main():
     # Config override
     if args.device:
         config.DEVICE = args.device
+
+    if not os.path.exists(args.video):
+        print(f"\n\033[31mError: Input video file '{args.video}' not found.\033[0m")
+        sys.exit(1)
 
     # Initialize Detectors
     pose_detector = PoseDetector()
@@ -53,8 +58,15 @@ def main():
     
     frame_count = 0
     total_triggers = 0
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     
-    print(f"Starting processing: {args.video} -> {args.output} using {args.method}")
+    # Startup Banner
+    print(f"\n\033[1m\033[34m=== Smart Video Interaction Filter ===\033[0m")
+    print(f"  \033[1mInput:\033[0m  {args.video}")
+    print(f"  \033[1mOutput:\033[0m {args.output}")
+    print(f"  \033[1mMethod:\033[0m {args.method}")
+    print(f"  \033[1mDevice:\033[0m {config.DEVICE}")
+    print(f"\033[34m======================================\033[0m\n")
 
     start_time_wall = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     start_time = time.time()
@@ -95,9 +107,18 @@ def main():
         
         out.write(frame)
         
-        if frame_count % 50 == 0:
+        # Progress Bar
+        if total_frames > 0:
+            percent = (frame_count / total_frames) * 100
+            bar_length = 30
+            filled_length = int(bar_length * frame_count // total_frames)
+            bar = '=' * filled_length + '-' * (bar_length - filled_length)
+            sys.stdout.write(f'\rProgress: [{bar}] {percent:.1f}% ({frame_count}/{total_frames})')
+            sys.stdout.flush()
+        elif frame_count % 50 == 0:
             print(f"Processed {frame_count} frames...")
 
+    print() # Newline after progress bar
     cap.release()
     out.release()
     
