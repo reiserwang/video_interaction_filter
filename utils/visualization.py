@@ -1,17 +1,23 @@
 import cv2
 from utils.geometry import get_bbox_center
 
-def draw_detections(frame, persons):
+def draw_detections(frame, persons, z_metrics=None):
     """
     Draw bounding boxes and keypoints for all detected persons.
     persons: dict of person_id -> {'bbox': ..., 'keypoints': ...}
+    z_metrics: dict of person_id -> z_value (optional)
     """
     for person_id, data in persons.items():
         bbox = data['bbox']
         # Draw BBox
         cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), (255, 0, 0), 2)
-        # Draw ID
-        cv2.putText(frame, f"ID: {person_id}", (int(bbox[0]), int(bbox[1]) - 10),
+        
+        # Draw ID & Z-metric
+        label = f"ID: {person_id}"
+        if z_metrics and person_id in z_metrics:
+            label += f" Z:{z_metrics[person_id]:.2f}"
+            
+        cv2.putText(frame, label, (int(bbox[0]), int(bbox[1]) - 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
         
         # Draw Keypoints (simplified)

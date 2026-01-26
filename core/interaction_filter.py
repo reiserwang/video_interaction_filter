@@ -144,5 +144,6 @@ class InteractionFilter:
             'overlaps': overlapping_pairs,
             'triggers': frame_triggers,
             'ended_interactions': ended_interactions,
-            'active_interactions': self.active_interactions
+            'active_interactions': self.active_interactions,
+            'z_metrics': z_metrics
         }

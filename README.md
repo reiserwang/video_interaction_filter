@@ -77,7 +77,14 @@ uv run main.py --video input.mp4 --method mde
 - Generates an annotated video (default: `output.mp4`).
 - Prints a **Comparator Report** showing VLM triggers and cost reduction stats.
 
-### 4. Testing
+### 4. Visual Output Explained
+The output video contains debugging markings to help verify the Z-Plane logic:
+- **Green Lines**: Connects two people who are overlapping in 2D **AND** are determined to be on the same depth plane.
+- **Z-Values**: Displayed next to the ID (e.g., `ID: 0 Z: 0.45`). Comparable values indicate the same depth.
+
+![Interaction Screenshot](asset/interaction_screenshot.png)
+
+### 5. Testing
 To run the test suite, run the following command:
 
 ```bash

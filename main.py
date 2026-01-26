@@ -12,7 +12,7 @@ from utils.visualization import draw_detections, draw_interactions, draw_status
 
 def main():
     parser = argparse.ArgumentParser(description="Smart Video Interaction Filter")
-    parser.add_argument("--video", type=str, required=True, help="Input video path")
+    parser.add_argument("--video", type=str, default="input.mp4", help="Input video path")
     parser.add_argument("--output", type=str, default="output.mp4", help="Output video path")
     parser.add_argument("--method", type=str, default="hybrid", choices=['ipd', 'head', 'hybrid', 'mde'], help="Z-plane detection method")
     parser.add_argument("--device", type=str, default=None, help="Device override")
@@ -89,7 +89,7 @@ def main():
             )
 
         # Draw
-        draw_detections(frame, results['persons'])
+        draw_detections(frame, results['persons'], results.get('z_metrics'))
         draw_interactions(frame, results['interactions'], results['persons'])
         draw_status(frame, frame_count, fps, args.method, total_triggers)
         
