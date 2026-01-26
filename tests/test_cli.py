@@ -1,40 +1,56 @@
 import unittest
+from unittest.mock import patch
 import sys
-from io import StringIO
+import io
+import time
 from utils.cli import ProgressBar
 
 class TestProgressBar(unittest.TestCase):
-    def test_progress_bar_output(self):
-        # Capture stdout
-        captured_output = StringIO()
-        original_stdout = sys.stdout
-        sys.stdout = captured_output
+    def test_init(self):
+        pb = ProgressBar(total=100)
+        self.assertEqual(pb.total, 100)
+        self.assertEqual(pb.prefix, 'Progress')
 
-        try:
-            total = 100
-            pb = ProgressBar(total, width=10)
+    @patch('sys.stdout', new_callable=io.StringIO)
+    def test_update_deterministic(self, mock_stdout):
+        # Test with known total
+        pb = ProgressBar(total=100, length=10)
+        # Mock time to avoid flaky tests based on speed
+        pb.start_time = time.time() - 10 # 10 seconds ago
 
-            # Test update at 50%
-            pb.update(50)
-            output = captured_output.getvalue()
-            # Carriage return should be present
-            self.assertTrue(output.startswith('\r'))
-            self.assertIn("50.0%", output)
-            self.assertIn("(50/100)", output)
-            self.assertIn("█", output)
+        # Force update regardless of throttling
+        pb.last_update_time = 0
 
-            # Reset capture
-            captured_output.truncate(0)
-            captured_output.seek(0)
+        pb.update(50)
+        output = mock_stdout.getvalue()
 
-            # Test finish
-            pb.finish()
-            output = captured_output.getvalue()
-            self.assertEqual(output, "\n")
+        # Check basic components
+        self.assertIn('Progress', output)
+        self.assertIn('50.0%', output)
+        self.assertIn('FPS:', output)
+        self.assertIn('ETA:', output)
+        self.assertIn('|', output) # Bar borders
 
-        finally:
-            # Restore stdout
-            sys.stdout = original_stdout
+    @patch('sys.stdout', new_callable=io.StringIO)
+    def test_update_indeterminate(self, mock_stdout):
+        # Test without known total
+        pb = ProgressBar(total=0)
+        pb.start_time = time.time() - 10
+
+        pb.last_update_time = 0
+        pb.update(50)
+        output = mock_stdout.getvalue()
+
+        self.assertIn('Progress', output)
+        self.assertIn('50 frames', output)
+        self.assertIn('FPS:', output)
+        self.assertNotIn('%', output) # No percentage in indeterminate mode
+
+    @patch('sys.stdout', new_callable=io.StringIO)
+    def test_finish(self, mock_stdout):
+        pb = ProgressBar(total=100)
+        pb.finish()
+        self.assertEqual(mock_stdout.getvalue(), '\n')
 
 if __name__ == '__main__':
     unittest.main()

@@ -2,6 +2,6 @@
 **Learning:** CLI tools often neglect basic UX like progress bars and color. Using ANSI codes is a lightweight way to add delight without dependencies. Hardcoded keys in stats classes are a common source of crashes.
 **Action:** Always check for dynamic keys in stats aggregators and wrap CLI output in a helper for consistent styling.
 
-## 2024-10-24 - CLI Progress Feedback
-**Learning:** Users processing long videos need granular feedback (percentage/ETA) rather than just "still working" logs. In-place updates (`\r`) reduce console spam compared to newline logging.
-**Action:** Use ANSI-based progress bars for long-running CLI tasks.
+## 2024-10-24 - CLI Progress Pattern
+**Learning:** CLI tools often lack visual feedback for long-running processes, causing user uncertainty.
+**Action:** Use the lightweight `utils.cli.ProgressBar` for any frame-by-frame processing loop to provide immediate feedback on speed and ETA without adding heavy dependencies.

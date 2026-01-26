@@ -74,7 +74,7 @@ def main():
     start_time = time.time()
     results = {}
 
-    progress = ProgressBar(total_frames, prefix='Processing:')
+    progress = ProgressBar(total=total_frames, prefix='Processing')
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -111,7 +111,7 @@ def main():
         
         out.write(frame)
         
-        progress.update(frame_count, extra_info=f"| Triggers: {total_triggers}")
+        progress.update(frame_count, suffix=f"| Triggers: {total_triggers}")
 
     progress.finish()
     cap.release()
