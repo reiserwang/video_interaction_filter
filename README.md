@@ -80,7 +80,15 @@ uv run main.py --video input.mp4 --method mde
 ### 4. Visual Output Explained
 The output video contains debugging markings to help verify the Z-Plane logic:
 - **Green Lines**: Connects two people who are overlapping in 2D **AND** are determined to be on the same depth plane.
+- **Group Coloring**: People in the same interaction group (overlapping + same depth) are highlighted with the same unique color.
 - **Z-Values**: Displayed next to the ID (e.g., `ID: 0 Z: 0.45`). Comparable values indicate the same depth.
+- **VLM Triggers**: The count displayed on the video (and in the final report) represents the number of **frames** that would trigger a VLM API call.
+
+**Console Logs**
+The application logs interacting groups with timestamps to standard output:
+```text
+[Frame 45 | 00:00:01.50] Interaction Group: [0, 1]
+```
 
 ![Interaction Screenshot](asset/interaction_screenshot.png)
 

@@ -103,6 +103,9 @@ class InteractionFilter:
                         interacting_pairs.add(pair)
                         G.add_edge(id1, id2)
 
+        # Identify groups
+        groups = [list(c) for c in nx.connected_components(G) if len(c) > 1]
+
         # Update persistent interaction tracking
         threshold_frames = int(config.INTERACTION_DURATION_SEC / (config.FRAME_INTERVAL * 0.033)) # Approximate if FPS unknown, usually passed from main
         # We'll rely on Main to pass FPS or Config to set specific frames. 
@@ -142,6 +145,7 @@ class InteractionFilter:
             'persons': persons,
             'interactions': interacting_pairs,
             'overlaps': overlapping_pairs,
+            'groups': groups,
             'triggers': frame_triggers,
             'ended_interactions': ended_interactions,
             'active_interactions': self.active_interactions,
