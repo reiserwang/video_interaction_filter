@@ -10,6 +10,7 @@ from core.comparator import Comparator
 from detectors.pose_detector import PoseDetector
 from detectors.depth_estimator import DepthEstimator
 from utils.visualization import draw_detections, draw_interactions, draw_status
+from utils.cli import ProgressBar
 
 def main():
     parser = argparse.ArgumentParser(description="Smart Video Interaction Filter")
@@ -52,6 +53,7 @@ def main():
     fps = cap.get(cv2.CAP_PROP_FPS)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(args.output, fourcc, fps, (width, height))
@@ -71,6 +73,8 @@ def main():
     start_time_wall = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     start_time = time.time()
     results = {}
+
+    progress = ProgressBar(total_frames, prefix='Processing:')
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -107,18 +111,9 @@ def main():
         
         out.write(frame)
         
-        # Progress Bar
-        if total_frames > 0:
-            percent = (frame_count / total_frames) * 100
-            bar_length = 30
-            filled_length = int(bar_length * frame_count // total_frames)
-            bar = '=' * filled_length + '-' * (bar_length - filled_length)
-            sys.stdout.write(f'\rProgress: [{bar}] {percent:.1f}% ({frame_count}/{total_frames})')
-            sys.stdout.flush()
-        elif frame_count % 50 == 0:
-            print(f"Processed {frame_count} frames...")
+        progress.update(frame_count, extra_info=f"| Triggers: {total_triggers}")
 
-    print() # Newline after progress bar
+    progress.finish()
     cap.release()
     out.release()
     
