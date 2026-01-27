@@ -91,7 +91,7 @@ def main():
             current_time_sec = frame_count / fps
             time_str = time.strftime('%H:%M:%S', time.gmtime(current_time_sec)) + f".{int((current_time_sec % 1) * 100):02d}"
             for group in results['groups']:
-                print(f"[Frame {frame_count} | {time_str}] Interaction Group: {sorted(group)}")
+                progress.log(f"[Frame {frame_count} | {time_str}] Interaction Group: {sorted(group)}")
 
         # Stats update
         has_overlap = len(results['overlaps']) > 0
