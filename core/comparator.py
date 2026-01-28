@@ -35,41 +35,63 @@ class Comparator:
             'total_frames': total_frames
         }
 
-    def print_report(self):
-        # Enrich annotations with timestamps if FPS is available
-        fps = self.processing_stats.get('fps', 30.0) # Default to 30 if not set
+    def _format_time(self, seconds):
+        mins = int(seconds // 60)
+        secs = int(seconds % 60)
+        if mins > 0:
+            return f"{mins:02d}m {secs:02d}s"
+        return f"{secs}s"
 
-        output = {
-            'processing_stats': self.processing_stats,
-            'methods': {}
-        }
+    def _print_header(self, text):
+        print(f"\n\033[1m\033[36m{text}\033[0m")
+        print(f"\033[36m{'-' * 60}\033[0m")
+
+    def _print_kv(self, key, value):
+        print(f"  \033[1m{key:<24}\033[0m {value}")
+
+    def print_report(self):
+        fps = self.processing_stats.get('fps', 30.0)
+        total_frames = self.processing_stats.get('total_frames', 0)
+        duration_sec = self.processing_stats.get('duration_sec', 0)
+        video_duration = total_frames / fps if fps else 0
+
+        # 1. Execution Summary
+        self._print_header("EXECUTION REPORT")
+        self._print_kv("Processing Time", f"{duration_sec:.2f}s ({self.processing_stats.get('fps', 0):.1f} fps)")
+        self._print_kv("Video Duration", f"{self._format_time(video_duration)} ({total_frames} frames)")
 
         for method, data in self.stats.items():
-            # Calculate cost reduction
             cost_reduction = 0.0
             if data['overlap_frames'] > 0:
                 cost_reduction = (1 - (data['triggers'] / data['overlap_frames'])) * 100
 
-            # Enrich annotations
-            enriched_annotations = []
-            for ann in data['annotations']:
-                start_time_sec = ann['start_frame'] / fps
-                end_time_sec = ann['end_frame'] / fps
+            # 2. Method Metrics
+            self._print_header(f"METHOD: {method.upper()}")
+            self._print_kv("Overlapping Frames", f"{data['overlap_frames']}")
+            self._print_kv("Interaction Frames", f"{data['interactions']}")
 
-                # Format MM:SS
-                ann_enriched = ann.copy()
-                ann_enriched['start_time'] = f"{int(start_time_sec // 60):02d}:{int(start_time_sec % 60):02d}"
-                ann_enriched['end_time'] = f"{int(end_time_sec // 60):02d}:{int(end_time_sec % 60):02d}"
-                enriched_annotations.append(ann_enriched)
+            # Triggers with color
+            trigger_color = "\033[32m" if data['triggers'] < 10 else "\033[33m"
+            self._print_kv("VLM Triggers", f"{trigger_color}{data['triggers']}\033[0m")
 
-            output['methods'][method] = {
-                'metrics': {
-                    'overlaps': data['overlap_frames'],
-                    'interactions': data['interactions'],
-                    'triggers': data['triggers'],
-                    'cost_reduction_percent': round(cost_reduction, 2)
-                },
-                'annotations': enriched_annotations
-            }
+            # Savings with color
+            savings_color = "\033[32m" if cost_reduction > 80 else ("\033[33m" if cost_reduction > 50 else "\033[31m")
+            self._print_kv("VLM Cost Reduction", f"{savings_color}{cost_reduction:.1f}%\033[0m")
 
-        print(json.dumps(output, indent=2))
+            # 3. Detailed Interaction Log
+            if data['annotations']:
+                print(f"\n  \033[1mDETECTED INTERACTIONS\033[0m")
+                for i, ann in enumerate(data['annotations'], 1):
+                    start_t = ann['start_frame'] / fps
+                    end_t = ann['end_frame'] / fps
+                    duration = end_t - start_t
+
+                    is_triggered = ann.get('triggered', False)
+                    status_icon = "🔥" if is_triggered else "✋"
+                    status_text = "Triggered" if is_triggered else "Buffered"
+
+                    time_range = f"[{self._format_time(start_t)} - {self._format_time(end_t)}]"
+
+                    print(f"  {i}. {status_icon} {time_range} ({duration:.1f}s) - {status_text}")
+
+        print(f"\033[36m{'-' * 60}\033[0m\n")
