@@ -1,10 +1,11 @@
 from ultralytics import YOLO
 import numpy as np
 import config
+from utils.cli import print_info
 
 class PoseDetector:
     def __init__(self):
-        print(f"Loading YOLO model: {config.YOLO_MODEL_NAME} on {config.DEVICE}...")
+        print_info(f"Loading YOLO model: {config.YOLO_MODEL_NAME} on {config.DEVICE}...")
         self.model = YOLO(config.YOLO_MODEL_NAME)
         # Force device if possible (Ultralytics handles this internally usually, but good to be explicit if passed)
         # self.model.to(config.DEVICE) 
