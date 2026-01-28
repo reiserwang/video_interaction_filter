@@ -21,6 +21,9 @@ class ProgressBar:
         current: current iteration (int)
         suffix: optional info to display (str)
         """
+        self.current = current
+        self.suffix = suffix
+
         # Throttle updates to ~10fps to avoid flickering and IO overhead
         now = time.time()
         if self.total > 0 and current < self.total and (now - self.last_update_time) < 0.1:
@@ -50,6 +53,19 @@ class ProgressBar:
             sys.stdout.write(f'\r{self.prefix} {spinner} {current} frames {suffix} [FPS: {speed:.1f}]')
 
         sys.stdout.flush()
+
+    def log(self, message):
+        """
+        Log a message above the progress bar without corrupting the display.
+        """
+        # Clear the current line (where the progress bar is)
+        sys.stdout.write('\r\033[K')
+        print(message)
+
+        # Force a redraw of the progress bar immediately
+        self.last_update_time = 0
+        if hasattr(self, 'current'):
+            self.update(self.current, self.suffix)
 
     def finish(self):
         """Clean up and print a newline."""

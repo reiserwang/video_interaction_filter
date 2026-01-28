@@ -1,16 +1,37 @@
 import cv2
+import numpy as np
 from utils.geometry import get_bbox_center
 
-def draw_detections(frame, persons, z_metrics=None):
+# BGR Colors
+COLORS = [
+    (0, 255, 0),    # Green
+    (0, 0, 255),    # Red
+    (0, 255, 255),  # Yellow
+    (255, 0, 255),  # Magenta
+    (255, 255, 0),  # Cyan
+    (255, 255, 255) # White
+]
+
+def draw_detections(frame, persons, z_metrics=None, groups=None):
     """
     Draw bounding boxes and keypoints for all detected persons.
     persons: dict of person_id -> {'bbox': ..., 'keypoints': ...}
     z_metrics: dict of person_id -> z_value (optional)
+    groups: list of lists of person_ids (optional)
     """
+    person_colors = {}
+    if groups:
+        for i, group in enumerate(groups):
+            color = COLORS[i % len(COLORS)]
+            for pid in group:
+                person_colors[pid] = color
+
     for person_id, data in persons.items():
         bbox = data['bbox']
+        color = person_colors.get(person_id, (255, 0, 0)) # Default Blue
+
         # Draw BBox
-        cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), (255, 0, 0), 2)
+        cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), color, 2)
         
         # Draw ID & Z-metric
         label = f"ID: {person_id}"
@@ -18,7 +39,7 @@ def draw_detections(frame, persons, z_metrics=None):
             label += f" Z:{z_metrics[person_id]:.2f}"
             
         cv2.putText(frame, label, (int(bbox[0]), int(bbox[1]) - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
         
         # Draw Keypoints (simplified)
         for kp in data['keypoints']:

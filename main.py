@@ -90,11 +90,19 @@ def main():
         # Process
         results = interaction_filter.process(frame)
         
+        # Log Interaction Groups
+        if results.get('groups'):
+            current_time_sec = frame_count / fps
+            time_str = time.strftime('%H:%M:%S', time.gmtime(current_time_sec)) + f".{int((current_time_sec % 1) * 100):02d}"
+            for group in results['groups']:
+                progress.log(f"[Frame {frame_count} | {time_str}] Interaction Group: {sorted(group)}")
+
         # Stats update
         has_overlap = len(results['overlaps']) > 0
         has_interaction = len(results['interactions']) > 0
         triggers = results['triggers']
-        total_triggers += triggers
+        if triggers > 0:
+            total_triggers += 1
         
         comparator.update(args.method, has_overlap, has_interaction, triggers > 0)
         
@@ -109,7 +117,7 @@ def main():
             )
 
         # Draw
-        draw_detections(frame, results['persons'], results.get('z_metrics'))
+        draw_detections(frame, results['persons'], results.get('z_metrics'), results.get('groups'))
         draw_interactions(frame, results['interactions'], results['persons'])
         draw_status(frame, frame_count, fps, args.method, total_triggers)
         
