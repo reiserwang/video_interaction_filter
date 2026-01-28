@@ -1,5 +1,6 @@
 import sys
 import unittest
+import numpy as np
 from unittest.mock import MagicMock
 
 # Mock dependencies before importing local modules
@@ -17,20 +18,8 @@ sys.modules['scipy'] = MagicMock()
 sys.modules['scipy.spatial'] = MagicMock()
 
 import config
-import numpy as np # Restore numpy
+# import numpy as np # Already imported
 
-
-# Mock dependencies before importing local modules
-sys.modules['torch'] = MagicMock()
-sys.modules['ultralytics'] = MagicMock()
-sys.modules['cv2'] = MagicMock()
-sys.modules['depth_anything_v2'] = MagicMock()
-sys.modules['depth_anything_v2.dpt'] = MagicMock()
-sys.modules['networkx'] = MagicMock()
-sys.modules['scipy'] = MagicMock()
-sys.modules['scipy.spatial'] = MagicMock()
-
-import config
 # Mock config.DEVICE manually since config import might have failed or used mocked torch
 config.DEVICE = 'cpu'
 config.CONF_THRESHOLD = 0.5

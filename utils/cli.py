@@ -43,12 +43,25 @@ class ProgressBar:
             eta_str = time.strftime("%H:%M:%S", time.gmtime(eta))
 
             # \r returns to start of line, end='' prevents newline
-            sys.stdout.write(f'\r{self.prefix} |{self.color}{bar}{self.reset}| {percent:.1f}% {suffix} [FPS: {speed:.1f} ETA: {eta_str}]')
+            # \033[K clears the line to avoid artifacts
+            sys.stdout.write(f'\r\033[K{self.prefix} |{self.color}{bar}{self.reset}| {percent:.1f}% {suffix} [FPS: {speed:.1f} ETA: {eta_str}]')
         else:
             # Indeterminate state
             spinner = ['|', '/', '-', '\\'][current % 4]
-            sys.stdout.write(f'\r{self.prefix} {spinner} {current} frames {suffix} [FPS: {speed:.1f}]')
+            sys.stdout.write(f'\r\033[K{self.prefix} {spinner} {current} frames {suffix} [FPS: {speed:.1f}]')
 
+        sys.stdout.flush()
+
+    def log(self, message):
+        """
+        Log a message without corrupting the progress bar.
+        Clears the current progress line, prints the message, and expects
+        the next update() call to redraw the bar.
+        """
+        # Clear the current line
+        sys.stdout.write('\r\033[K')
+        # Print the message
+        print(message)
         sys.stdout.flush()
 
     def finish(self):

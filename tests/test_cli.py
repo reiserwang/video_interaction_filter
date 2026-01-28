@@ -52,5 +52,14 @@ class TestProgressBar(unittest.TestCase):
         pb.finish()
         self.assertEqual(mock_stdout.getvalue(), '\n')
 
+    @patch('sys.stdout', new_callable=io.StringIO)
+    def test_log(self, mock_stdout):
+        pb = ProgressBar(total=100)
+        pb.log("Test Log")
+        output = mock_stdout.getvalue()
+        # Should contain Clear Line code, Message, and Newline
+        self.assertIn('\r\033[K', output)
+        self.assertIn('Test Log\n', output)
+
 if __name__ == '__main__':
     unittest.main()
