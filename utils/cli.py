@@ -58,9 +58,8 @@ class ProgressBar:
 
     def clear(self):
         """Clear the progress bar line."""
-        # Estimated width of the bar + extra text
-        width = self.length + 60
-        sys.stdout.write('\r' + ' ' * width + '\r')
+        # Clear the entire line using an ANSI escape sequence
+        sys.stdout.write('\r\x1b[2K')
         sys.stdout.flush()
 
     def log(self, message):
