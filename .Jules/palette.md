@@ -5,3 +5,7 @@
 ## 2024-10-24 - CLI Progress Pattern
 **Learning:** CLI tools often lack visual feedback for long-running processes, causing user uncertainty.
 **Action:** Use the lightweight `utils.cli.ProgressBar` for any frame-by-frame processing loop to provide immediate feedback on speed and ETA without adding heavy dependencies.
+
+## 2026-01-27 - CLI Log Interleaving
+**Learning:** Mixing standard `print` statements with dynamic CLI progress bars causes visual corruption, breaking the illusion of a stable UI.
+**Action:** Implement and use a `log()` method on the progress bar component that clears the active line before printing and immediately redraws the bar.
