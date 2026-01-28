@@ -58,7 +58,10 @@ class ProgressBar:
         Clears the current progress line, prints the message, and expects
         the next update() call to redraw the bar.
         """
-        sys.stdout.write(f'\r\033[K{message}\n')
+        # Clear the current line
+        sys.stdout.write('\r\033[K')
+        # Print the message
+        print(message)
         sys.stdout.flush()
 
     def finish(self):

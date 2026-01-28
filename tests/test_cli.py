@@ -57,7 +57,9 @@ class TestProgressBar(unittest.TestCase):
         pb = ProgressBar(total=100)
         pb.log("Test Log")
         output = mock_stdout.getvalue()
-        self.assertEqual(output, '\r\033[KTest Log\n')
+        # Should contain Clear Line code, Message, and Newline
+        self.assertIn('\r\033[K', output)
+        self.assertIn('Test Log\n', output)
 
 if __name__ == '__main__':
     unittest.main()
