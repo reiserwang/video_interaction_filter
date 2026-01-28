@@ -14,6 +14,8 @@ class ProgressBar:
         self.reset = '\033[0m'
         self.start_time = time.time()
         self.last_update_time = 0
+        self.last_current = 0
+        self.last_suffix = ''
 
     def update(self, current, suffix=''):
         """
@@ -21,8 +23,8 @@ class ProgressBar:
         current: current iteration (int)
         suffix: optional info to display (str)
         """
-        self.current = current
-        self.suffix = suffix
+        self.last_current = current
+        self.last_suffix = suffix
 
         # Throttle updates to ~10fps to avoid flickering and IO overhead
         now = time.time()
@@ -54,18 +56,18 @@ class ProgressBar:
 
         sys.stdout.flush()
 
-    def log(self, message):
-        """
-        Log a message above the progress bar without corrupting the display.
-        """
-        # Clear the current line (where the progress bar is)
-        sys.stdout.write('\r\033[K')
-        print(message)
+    def clear(self):
+        """Clear the progress bar line."""
+        # Clear the entire line using an ANSI escape sequence
+        sys.stdout.write('\r\x1b[2K')
+        sys.stdout.flush()
 
-        # Force a redraw of the progress bar immediately
-        self.last_update_time = 0
-        if hasattr(self, 'current'):
-            self.update(self.current, self.suffix)
+    def log(self, message):
+        """Log a message without breaking the progress bar."""
+        self.clear()
+        print(message)
+        self.last_update_time = 0 # Force update
+        self.update(self.last_current, self.last_suffix)
 
     def finish(self):
         """Clean up and print a newline."""
