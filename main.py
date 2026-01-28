@@ -10,7 +10,7 @@ from core.comparator import Comparator
 from detectors.pose_detector import PoseDetector
 from detectors.depth_estimator import DepthEstimator
 from utils.visualization import draw_detections, draw_interactions, draw_status
-from utils.cli import ProgressBar
+from utils.cli import ProgressBar, print_info, print_success, print_error
 
 def main():
     parser = argparse.ArgumentParser(description="Smart Video Interaction Filter")
@@ -24,9 +24,19 @@ def main():
     if args.device:
         config.DEVICE = args.device
 
+    # Startup Banner (Moved to top)
+    print(f"\n\033[1m\033[34m=== Smart Video Interaction Filter ===\033[0m")
+    print(f"  \033[1mInput:\033[0m  {args.video}")
+    print(f"  \033[1mOutput:\033[0m {args.output}")
+    print(f"  \033[1mMethod:\033[0m {args.method}")
+    print(f"  \033[1mDevice:\033[0m {config.DEVICE}")
+    print(f"\033[34m======================================\033[0m\n")
+
     if not os.path.exists(args.video):
-        print(f"\n\033[31mError: Input video file '{args.video}' not found.\033[0m")
+        print_error(f"Input video file '{args.video}' not found.")
         sys.exit(1)
+
+    print_info("Initializing Detectors...")
 
     # Initialize Detectors
     pose_detector = PoseDetector()
@@ -44,10 +54,12 @@ def main():
     # Initialize Comparator
     comparator = Comparator()
     
+    print_success("Initialization complete.")
+
     # Video Setup
     cap = cv2.VideoCapture(args.video)
     if not cap.isOpened():
-        print("Error: Could not open video.")
+        print_error("Could not open video.")
         sys.exit(1)
         
     fps = cap.get(cv2.CAP_PROP_FPS)
@@ -62,14 +74,6 @@ def main():
     total_triggers = 0
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     
-    # Startup Banner
-    print(f"\n\033[1m\033[34m=== Smart Video Interaction Filter ===\033[0m")
-    print(f"  \033[1mInput:\033[0m  {args.video}")
-    print(f"  \033[1mOutput:\033[0m {args.output}")
-    print(f"  \033[1mMethod:\033[0m {args.method}")
-    print(f"  \033[1mDevice:\033[0m {config.DEVICE}")
-    print(f"\033[34m======================================\033[0m\n")
-
     start_time_wall = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     start_time = time.time()
     results = {}
@@ -141,7 +145,7 @@ def main():
 
     comparator.set_processing_stats(start_time_wall, end_time_wall, duration, fps, frame_count)
     comparator.print_report()
-    print("Done.")
+    print_success("Done.")
 
 if __name__ == "__main__":
     main()

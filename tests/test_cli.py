@@ -52,5 +52,28 @@ class TestProgressBar(unittest.TestCase):
         pb.finish()
         self.assertEqual(mock_stdout.getvalue(), '\n')
 
+    @patch('sys.stdout', new_callable=io.StringIO)
+    def test_log(self, mock_stdout):
+        pb = ProgressBar(total=100)
+        # Prime the progress bar with an update
+        pb.update(10)
+
+        # Clear mock buffer to test log output specifically
+        mock_stdout.truncate(0)
+        mock_stdout.seek(0)
+
+        message = "Test log message"
+        pb.log(message)
+
+        output = mock_stdout.getvalue()
+
+        # Expect clear line sequence (or part of it)
+        self.assertIn('\r', output)
+        # Expect the message and newline
+        self.assertIn(f"{message}\n", output)
+        # Expect the progress bar to be redrawn
+        self.assertIn('Progress', output)
+        self.assertIn('10.0%', output)
+
 if __name__ == '__main__':
     unittest.main()
