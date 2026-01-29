@@ -1,6 +1,8 @@
 import cv2
 import torch
+import torch.nn.functional as F
 import numpy as np
+import os
 import config
 from depth_anything_v2.dpt import DepthAnythingV2
 from utils.cli import print_info
@@ -25,13 +27,17 @@ class DepthEstimator:
         self.model = DepthAnythingV2(**model_configs[encoder])
         
         # Load weights
-        # Check if file exists, else might need download (handled manually by user for now as per plan/readme)
-        try:
-            self.model.load_state_dict(torch.load(config.DEPTH_MODEL_NAME, map_location='cpu'))
-        except FileNotFoundError:
-            print(f"WARNING: Depth model weights not found at {config.DEPTH_MODEL_NAME}. MDE will fail.")
+        if os.path.exists(config.DEPTH_MODEL_NAME):
+            print(f"\033[34mℹ\033[0m Loading DepthAnything V2 model: {config.DEPTH_MODEL_NAME} on {config.DEVICE}...") # Changed self.device to config.DEVICE
+            # weights_only=False required for some older/complex weight files in newer PyTorch
+            self.model.load_state_dict(torch.load(config.DEPTH_MODEL_NAME, map_location='cpu', weights_only=False))
+            self.model.to(config.DEVICE).eval() # Changed self.device to config.DEVICE
+        else:    print(f"WARNING: Depth model weights not found at {config.DEPTH_MODEL_NAME}. MDE will fail.")
             
-        self.model = self.model.to(config.DEVICE).eval()
+        # The line below was redundant after the change, but was present in the instruction's snippet.
+        # Keeping it as per instruction to faithfully reproduce the provided Code Edit,
+        # but noting it might be a logical redundancy.
+        self.model = self.model.to(config.DEVICE).eval() 
 
     def get_depth_map(self, frame):
         """
