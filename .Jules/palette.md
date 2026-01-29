@@ -9,3 +9,7 @@
 ## 2024-01-27 - CLI Progress/Log Collision
 **Learning:** Mixing standard `print` statements with `\r` based progress bars causes visual glitches and broken output.
 **Action:** Implement a `log()` method on the progress bar class that clears the line, prints the message, and forces a redraw, ensuring clean logs without interrupting the progress visual.
+
+## 2026-01-28 - Structured CLI Reports
+**Learning:** Raw JSON output is great for machines but poor for humans. A structured, color-coded summary table at the end of execution dramatically improves the perceived quality of the tool.
+**Action:** Replace raw debug dumps with formatted tables using ANSI codes, highlighting key metrics (like cost savings) with success colors (Green).
