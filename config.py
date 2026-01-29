@@ -13,7 +13,7 @@ else:
 FRAME_INTERVAL = 1  # Process every Nth frame (1 = all frames)
 
 # Interaction thresholds
-INTERACTION_DURATION_SEC = 2.0  # Seconds of consistent overlap/z-plane to trigger
+INTERACTION_DURATION_SEC = 1.0  # Seconds of consistent overlap/z-plane to trigger
 Z_PLANE_RATIO_THRESHOLD = 1.3  # Heuristic ratio
 Z_PLANE_DEPTH_DIFF_THRESHOLD = 0.10  # 10% depth difference for MDE
 

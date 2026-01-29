@@ -64,17 +64,26 @@ uv sync
 
 ### 3. Run
 **Heuristic Mode (Fastest)**
+Best for real-time applications where minor depth inaccuracies are acceptable.
 ```bash
-uv run main.py --video input.mp4 --method hybrid
+uv run main.py --video input.mp4 --output output_hybrid.mp4 --method hybrid
 ```
 
 **MDE Mode (Most Accurate)**
+Uses DepthAnything V2 for robust depth verification. Slower but handles occlusions better.
+*Note: Ensure `depth_anything_v2_vits.pth` is in the root folder.*
 ```bash
-uv run main.py --video input.mp4 --method mde
+uv run main.py --video input.mp4 --output output_mde.mp4 --method mde
 ```
 
+**Common Arguments**
+- `--video`: Path to input video (default: `input.mp4`)
+- `--output`: Path to output annotated video (default: `output.mp4`)
+- `--method`: Interaction detection method: `hybrid`, `mde`, `head`, or `ipd` (default: `hybrid`)
+- `--device`: Force device usage: `mps`, `cuda`, or `cpu` (default: auto-detect)
+
 **Output**
-- Generates an annotated video (default: `output.mp4`).
+- Generates an annotated video with visual debug cues.
 - Prints a **Comparator Report** showing VLM triggers and cost reduction stats.
 
 ### 4. Visual Output Explained
@@ -102,12 +111,17 @@ PYTHONPATH=. uv run pytest
 ## Performance Benchmarks
 Comparison of filtering methods on `input.mp4` (192 frames).
 
-| Method | Execution Time | Processing Speed | Speedup | VLM Savings |
+| Method | Execution Time | Processing Speed | Speedup | VLM Savings (1.0s Trigger) |
 |--------|----------------|------------------|---------|-------------|
-| **Hybrid Mode** | **9.78 s** | **~22 fps** | **5.0x** | **100%** |
-| MDE Mode | 42.89 s | ~4.3 fps | 1.0x | 98.4% |
+| **Hybrid Mode** | **~9 s** | **~22 fps** | **~5.0x** | **92%** |
+| MDE Mode | ~43 s | ~4.5 fps | 1.0x | 99% |
 
-> **Note**: Hybrid mode achieves near real-time performance (22 fps), making it significantly more efficient for long videos while maintaining reasonable accuracy.
+### Threshold Sensitivity impact
+Lowering the trigger threshold to **0.5s** reveals the robustness difference:
+- **Hybrid Mode**: VLM triggers jumped to **53** (noisy detection).
+- **MDE Mode**: VLM triggers remained at **1** (robust detection).
+
+> **Conclusion**: MDE provides superior depth understanding and stability, while Hybrid mode requires a longer temporal buffer (1.0s+) to filter out noise effectively.
 
 ## Configuration
 - Device (MPS/CUDA/CPU) is auto-detected. Override with `--device cpu`.
