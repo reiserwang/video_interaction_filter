@@ -40,7 +40,7 @@ The project follows a modular architecture:
 2.  **Overlap Check**: Identify bounding box overlaps.
 3.  **Z-Plane Filter**: Verify if subjects are on the same depth plane.
     - **Method 1: Heuristic (Default)**: Uses Head Size Ratio or IPD (Inter-pupillary distance) to estimate depth similarity. Fast but less accurate for back-views.
-    - **Method 2: Monocular Depth Estimation (MDE)**: Uses **DepthAnything V2** to generate pixel-wise depth maps. Accurately handles occlusions and any pose.
+    - **Method 2: [Monocular Depth Estimation (MDE)**](https://github.com/DepthAnything/Depth-Anything-V2): Uses **DepthAnything V2** to generate pixel-wise depth maps. Accurately handles occlusions and any pose.
 4.  **Temporal Filter**: Triggers VLM only after **2 seconds** of consistent valid interaction.
 
 ## Installation & Usage (uv)
@@ -122,6 +122,33 @@ Lowering the trigger threshold to **0.5s** reveals the robustness difference:
 - **MDE Mode**: VLM triggers remained at **1** (robust detection).
 
 > **Conclusion**: MDE provides superior depth understanding and stability, while Hybrid mode requires a longer temporal buffer (1.0s+) to filter out noise effectively.
+
+## VLM Context & Trade-offs
+
+### The "Filtered View" Sacrifice
+By design, this system selectively triggers the VLM only during high-probability interactions. This saves cost (~98%) but introduces a trade-off: **Loss of Temporal Context**.
+- The VLM receives isolated frames (or short bursts) of the "action".
+- It may miss the *context* leading up to the event (e.g., *why* two people started fighting, or where they came from).
+- It lacks the continuous "story" of the video.
+
+### How to Preserve Context
+To mitigate this while maintaining cost savings, use a **Dual-Stream Strategy**:
+
+1.  **Event Stream (High Res)**:
+    - Use this filter to detecting "interesting" frames.
+    - Send these frames to a **High-Intelligence VLM** (e.g., GPT-4o, Claude 3.5 Sonnet) for detailed analysis.
+    - **Buffer Context**: When a trigger occurs, capture a small buffer window `[Trigger - 2s, Trigger + 2s]` to give the VLM immediate local context.
+
+2.  **Context Stream (Low Res)**:
+    - Parallel to the filter, sample the video at a very low FPS (e.g., 0.5 FPS) and low resolution.
+    - Feed this stream to a **Low-Cost VLM** (e.g., Gemini Flash, GPT-4o-mini).
+    - Maintain a running text summary (state) of the scene.
+    - Include this summary in the prompt when the High-Intelligence VLM is triggered.
+
+**Example Prompt with Context:**
+> "Here is a high-res image of a potential fight.
+> **Context**: *Previous summary: Two subjects walked in from the left and argued near the desk for 30 seconds.*
+> Describe the current interaction in detail."
 
 ## Configuration
 - Device (MPS/CUDA/CPU) is auto-detected. Override with `--device cpu`.
